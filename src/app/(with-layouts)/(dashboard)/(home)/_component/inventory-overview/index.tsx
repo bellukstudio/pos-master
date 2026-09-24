@@ -59,10 +59,11 @@ export default function InventoryOverview() {
         <CardContent className="p-0">
           <div className="h-42.25 w-full">
             <ChartContainer
-              className="relative h-full w-full"
-              height={169}
-              width={"100%"}
-              aspect={undefined}
+              className="h-full w-full"
+              width="100%"
+              height="100%"
+              minWidth={0}
+              initialDimension={{ width: 1, height: 1 }}
             >
               <PieChart>
                 <Pie

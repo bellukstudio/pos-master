@@ -1,125 +1,117 @@
 import {
-  AlphabetIcon,
+  AuthIcon,
+  CalendarIcon,
   HomeIcon,
+  InvoiceIcon,
   PieChartIcon,
   TableIcon,
+  TaskIcon,
+  UserGroupIcon,
   UserIcon,
-  Widget4Icon,
-  WindowIcon
+  WindowIcon,
 } from "./icon";
 
 export const NAV_DATA = [
   {
-    label: "MAIN MENU",
+    label: "MENU UTAMA",
     items: [
       {
         title: "Dashboard",
+        url: "/",
         icon: <HomeIcon />,
-        items: [
-          {
-            title: "E-commerce",
-            url: "/",
-          },
-          
-        ],
-      },   
-      {
-        title: "Profile",
-        url: "/profile",
-        icon: <UserIcon />,
         items: [],
       },
       {
-        title: "Forms",
-        icon: <AlphabetIcon />,
-        items: [
-          {
-            title: "Form Elements",
-            url: "/form-elements",
-          },
-        ],
+        title: "Kasir",
+        url: "/kasir",
+        icon: <InvoiceIcon />,
+        items: [],
       },
       {
-        title: "Tables",
-        url: "/tables",
-        icon: <TableIcon />,
-        items: [
-          {
-            title: "Basic Tables",
-            url: "/tables/basic-tables",
-          },
-        ],
-      },
-      {
-        title: "Pages",
+        title: "Produk",
         icon: <WindowIcon />,
         items: [
-          {
-            title: "Error Page",
-            url: "/error-page",
-          },
-          {
-            title: "Terms & Conditions",
-            url: "/terms-and-conditions",
-          },
-          {
-            title: "Mail Success",
-            url: "/mail-success",
-          },
+          { title: "Semua Produk", url: "/products" },
+          { title: "Kategori Produk", url: "/products/categories" },
+        ],
+      },
+      {
+        title: "Pembelian",
+        url: "/purchases",
+        icon: <TaskIcon />,
+        items: [],
+      },
+      {
+        title: "Stok",
+        icon: <TableIcon />,
+        items: [
+          { title: "Mutasi Stok", url: "/stock/mutations" },
+          { title: "Retur Barang", url: "/stock/returns" },
+        ],
+      },
+      {
+        title: "Member & Loyalty",
+        url: "/members",
+        icon: <UserGroupIcon />,
+        items: [],
+      },
+      {
+        title: "Promo & Diskon",
+        url: "/promotions",
+        icon: <TaskIcon />,
+        items: [],
+      },
+      {
+        title: "Cabang",
+        url: "/branches",
+        icon: <WindowIcon />,
+        items: [],
+      },
+      {
+        title: "Shift Kasir",
+        url: "/shifts",
+        icon: <CalendarIcon />,
+        items: [],
+      },
+      {
+        title: "Laporan",
+        icon: <PieChartIcon />,
+        items: [
+          { title: "Laporan Penjualan", url: "/reports/sales" },
+          { title: "Laporan Stok", url: "/reports/stock" },
+          { title: "Laporan Keuangan", url: "/reports/finance" },
         ],
       },
     ],
   },
   {
-    label: "OTHERS",
+    label: "LAINNYA",
     items: [
       {
-        title: "Charts",
-        icon: <PieChartIcon />,
+        title: "Pengguna & Akses",
+        icon: <UserIcon />,
         items: [
-          {
-            title: "Line Charts",
-            url: "/charts/line-charts",
-          },
-          {
-            title: "Bar Charts",
-            url: "/charts/bar-charts",
-          },
-          {
-            title: "Pie Charts",
-            url: "/charts/pie-charts",
-          },
+          { title: "Pengguna", url: "/users" },
+          { title: "Hak Akses", url: "/users/access-rights" },
         ],
       },
       {
-        title: "UI Elements",
-        icon: <Widget4Icon />,
-        items: [
-          {
-            title: "Accordion",
-            url: "/ui-elements/accordion",
-          },
-          {
-            title: "Avatars",
-            url: "/ui-elements/avatars",
-          },
-          {
-            title: "Buttons",
-            url: "/ui-elements/buttons",
-          },
-          {
-            title: "Breadcrumbs",
-            url: "/ui-elements/breadcrumbs",
-          },
-          {
-            title: "Progress",
-            url: "/ui-elements/progress",
-          },
-          {
-            title: "Tooltips",
-            url: "/ui-elements/tooltips",
-          },
-        ],
+        title: "Log Aktivitas",
+        url: "/audit-log",
+        icon: <AuthIcon />,
+        items: [],
+      },
+      {
+        title: "Pengaturan",
+        url: "/settings",
+        icon: <AuthIcon />,
+        items: [],
+      },
+      {
+        title: "Profil",
+        url: "/profile",
+        icon: <UserIcon />,
+        items: [],
       },
     ],
   },

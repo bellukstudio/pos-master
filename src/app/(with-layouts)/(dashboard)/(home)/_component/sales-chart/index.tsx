@@ -39,7 +39,11 @@ export default function SalesChart() {
         {isLoading || !chartData ? (
           <SalesChartSkeleton />
         ) : (
-          <ChartContainer className="h-full w-full" height="100%" width="100%">
+          <ChartContainer className="h-full w-full"
+            width="100%"
+            height="100%"
+            minWidth={0}
+            initialDimension={{ width: 1, height: 1 }}>
             <AreaChart data={chartData.data} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
               <defs>

@@ -1,7 +1,7 @@
 export default function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("id-ID", {
     style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 1,
+    currency: "IDR",
+    maximumFractionDigits: 0,
   }).format(value);
 }

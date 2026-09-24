@@ -1,6 +1,6 @@
 "use client";
 
-import { buttonStyles } from "@/components/tailgrids/core/button";
+import { buttonStyles } from "@/components/tailgrids/core/button-styles";
 import { cn } from "@/utils/cn";
 import { ChevronDown, ChevronLeft, ChevronRight } from "@tailgrids/icons";
 import { cva } from "class-variance-authority";

@@ -98,7 +98,7 @@ export default function AccountPage() {
                 <InputGroupAddon className="after h-full border-r border-card-border text-input-placeholder-text-color">
                   https://
                 </InputGroupAddon>
-                <InputGroupInput name="website" placeholder="www.nextadmin.co" className="pl-2" />
+                <InputGroupInput name="website" placeholder="www.tokoanda.com" className="pl-2" />
               </InputGroup>
             </TextField>
 

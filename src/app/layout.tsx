@@ -13,11 +13,11 @@ const geistInter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | NextAdmin - Next.js Dashboard Kit",
-    default: "NextAdmin - Next.js Dashboard Kit",
+    template: "%s | Pos Master",
+    default: "Pos Master - Aplikasi Kasir & Manajemen Toko",
   },
   description:
-    "Next.js admin dashboard toolkit with 200+ templates, UI components, and integrations for fast dashboard development.",
+    "Pos Master adalah aplikasi kasir (POS) dan manajemen toko: penjualan, stok, pembelian, member, laporan, hingga multi-cabang dalam satu dashboard.",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       suppressHydrationWarning
-      lang="en"
+      lang="id"
       className={cn("h-full overflow-hidden antialiased", geistInter.className)}
     >
       <body className="h-full overflow-hidden bg-background-gray-secondary_alt_2">

@@ -5,7 +5,7 @@ import ThemeToggle from "@/components/common/header/theme-toggle";
 import { UserProfileButton } from "@/components/common/header/user-profile";
 import { ThreeDots } from "@/components/common/sidebar/icon";
 import { cn } from "@/utils/cn";
-import { LogoWithText } from "@/utils/icon";
+import { BrandLogo } from "@/utils/brand";
 import React from "react";
 import { NotificationsButton } from "./notifications";
 import SearchBar from "./searchbar";
@@ -33,7 +33,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
 
           {/* Center: Logo */}
           <div className="flex items-center justify-center">
-            <LogoWithText />
+            <BrandLogo />
           </div>
 
           {/* Right: Three-dot */}
