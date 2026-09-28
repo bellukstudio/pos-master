@@ -1,5 +1,10 @@
 import { after, type NextRequest } from "next/server";
-import { describeMutation, getRequestContext, recordAudit } from "@/lib/server/audit";
+import {
+    describeMutation,
+    getRequestContext,
+    lookupEntityLabel,
+    recordAudit,
+} from "@/lib/server/audit";
 import { backendFetch } from "@/lib/server/backend";
 import { isTrustedMutation, SAFE_METHODS } from "@/lib/server/csrf";
 import { jsonError } from "@/lib/server/responses";
@@ -84,7 +89,7 @@ async function readBody(req: NextRequest): Promise<BodyResult> {
     const chunks: Uint8Array[] = [];
     let total = 0;
 
-    for (; ;) {
+    for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
         total += value.byteLength;
@@ -146,21 +151,31 @@ async function toClientResponse(backendRes: Response): Promise<Response> {
     return new Response(noBody ? null : backendRes.body, { status: backendRes.status, headers });
 }
 
-/** Catat mutasi yang BERHASIL, setelah respons dikirim (tidak menambah latency). */
-function scheduleAudit(
+/**
+ * Catat mutasi yang BERHASIL.
+ * Umumnya dijalankan setelah respons dikirim (tidak menambah latency). Khusus penghapusan
+ * log audit, pencatatan DITUNGGU dulu: bila tidak, UI me-refetch daftar sebelum entrinya
+ * sempat ada, dan kegagalan pencatatan tak terlihat oleh siapa pun.
+ */
+async function recordMutation(
     req: NextRequest,
     segments: string[],
     body: ArrayBuffer | undefined,
     backendStatus: number,
     token: string,
+    entityLabel: string | undefined,
 ) {
     if (backendStatus < 200 || backendStatus >= 300) return;
 
-    const event = describeMutation(req.method, segments, body);
+    const event = describeMutation(req.method, segments, body, entityLabel);
     if (!event) return;
 
-    const context = getRequestContext(req.headers);
-    after(() => recordAudit({ ...event, ...context, token }));
+    const input = { ...event, ...getRequestContext(req.headers), token };
+    if (segments[1]?.toLowerCase() === "audit") {
+        await recordAudit(input);
+    } else {
+        after(() => recordAudit(input));
+    }
 }
 
 // ---- handler: hanya mengatur urutan langkah ----
@@ -177,10 +192,20 @@ async function handler(req: NextRequest, { params }: Ctx) {
     const bodyResult = await readBody(req);
     if (!bodyResult.ok) return bodyResult.response;
 
+    // Khusus DELETE: baca dulu label entitas (nama / isi log) sebelum datanya hilang.
+    const entityLabel = await lookupEntityLabel(req.method, segments);
+
     const forwardResult = await forwardToBackend(req, toBackendPath(segments), bodyResult.body);
     if (!forwardResult.ok) return forwardResult.response;
 
-    scheduleAudit(req, segments, bodyResult.body, forwardResult.response.status, token);
+    await recordMutation(
+        req,
+        segments,
+        bodyResult.body,
+        forwardResult.response.status,
+        token,
+        entityLabel,
+    );
     return toClientResponse(forwardResult.response);
 }
 

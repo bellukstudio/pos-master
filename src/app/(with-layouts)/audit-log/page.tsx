@@ -107,7 +107,7 @@ function TableSkeleton() {
   );
 }
 
-function ErrorCard({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+function ErrorCard({ error, onRetry }: Readonly<{ error: unknown; onRetry: () => void }>) {
   return (
     <Card className="flex flex-col items-start gap-3 p-5">
       <p className="text-sm text-text-primary">{toUserMessage(error)}</p>
