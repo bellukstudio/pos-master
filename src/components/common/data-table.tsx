@@ -20,11 +20,11 @@ export default function DataTable<T extends { id: string | number }>({
   columns,
   data,
   emptyLabel = "Belum ada data.",
-}: {
+}: Readonly<{
   columns: DataTableColumn<T>[];
   data: T[];
   emptyLabel?: string;
-}) {
+}>) {
   return (
     <Card className="overflow-hidden p-0">
       <CardContent className="p-0">

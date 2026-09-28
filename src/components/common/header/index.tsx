@@ -11,7 +11,7 @@ import { NotificationsButton } from "./notifications";
 import SearchBar from "./searchbar";
 
 //  Main Header
-export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
+export default function Header({ onMenuClick }: Readonly<{ onMenuClick?: () => void }>) {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
   return (

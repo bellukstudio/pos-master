@@ -29,7 +29,7 @@ export default function NavItem({
   items,
   collapsed,
   onItemClick,
-}: NavItemProps) {
+}: Readonly<NavItemProps>) {
   const pathname = usePathname();
 
   const isActive = href ? isPathActive(href, pathname) : false;

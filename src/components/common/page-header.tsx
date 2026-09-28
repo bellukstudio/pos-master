@@ -6,12 +6,12 @@ export default function PageHeader({
   description,
   action,
   className,
-}: {
+}: Readonly<{
   title: string;
   description?: string;
   action?: ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <div
       className={cn(

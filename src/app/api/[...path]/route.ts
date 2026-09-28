@@ -192,7 +192,6 @@ async function handler(req: NextRequest, { params }: Ctx) {
     const bodyResult = await readBody(req);
     if (!bodyResult.ok) return bodyResult.response;
 
-    // Khusus DELETE: baca dulu label entitas (nama / isi log) sebelum datanya hilang.
     const entityLabel = await lookupEntityLabel(req.method, segments);
 
     const forwardResult = await forwardToBackend(req, toBackendPath(segments), bodyResult.body);

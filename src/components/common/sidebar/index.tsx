@@ -18,12 +18,12 @@ export default function Sidebar({
     toggleSidebar,
     isMobileSheet = false,
     onItemClick,
-}: {
+}: Readonly<{
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
     isMobileSheet?: boolean;
     onItemClick?: () => void;
-}) {
+}>) {
     const pathname = usePathname();
     const { theme } = useTheme();
 
