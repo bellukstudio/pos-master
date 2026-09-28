@@ -9,6 +9,11 @@ export const qk = {
         topProducts: ["home", "top-products"] as const,
         lastTransactions: ["home", "last-transactions"] as const,
     },
+    auditLogs: {
+        all: ["audit-logs"] as const,
+        list: (filter?: object) => ["audit-logs", "list", filter ?? {}] as const,
+        detail: (id: string) => ["audit-logs", "detail", id] as const,
+    },
     branches: {
         all: ["branches"] as const,
         list: (filter?: object) => ["branches", "list", filter ?? {}] as const,

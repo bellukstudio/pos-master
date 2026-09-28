@@ -13,21 +13,38 @@ import { Label } from "@/components/tailgrids/core/label";
 import { TextField } from "@/components/tailgrids/core/text-field";
 import { BrandLogo } from "@/utils/brand";
 import { Eye, EyeDisabled } from "@tailgrids/icons";
+import { useLogin } from "@/hooks/api/use-auth";
+import { toUserMessage } from "@/lib/api/errors";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import * as React from "react";
+
+function formString(value: FormDataEntryValue | null): string {
+  return typeof value === "string" ? value : "";
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const loginMutation = useLogin();
+  const isSubmitting = loginMutation.isPending;
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    // UI only for now — belum terhubung ke API autentikasi.
-    setIsSubmitting(true);
-    setTimeout(() => {
-      router.push("/");
-    }, 500);
+    const form = new FormData(e.currentTarget);
+
+    loginMutation.mutate(
+      { email: formString(form.get("email")), password: formString(form.get("password")) },
+      {
+        onSuccess: () => {
+          // Hanya izinkan path internal (anti open-redirect).
+          const next = new URLSearchParams(window.location.search).get("next");
+          router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
+          router.refresh();
+        },
+        onError: (err) => toast.error(toUserMessage(err)),
+      },
+    );
   }
 
   return (
@@ -42,7 +59,7 @@ export default function LoginPage() {
           }}
         />
         <div className="relative z-10">
-          <BrandLogo dark className="text-white"/>
+          <BrandLogo />
         </div>
 
         <div className="relative z-10 max-w-md space-y-6">
@@ -52,15 +69,19 @@ export default function LoginPage() {
           <ul className="space-y-3 text-sm text-white/80">
             <li className="flex items-center gap-2.5">
               <span className="size-1.5 shrink-0 rounded-full bg-white" />
-              Transaksi kasir cepat, multi-cabang
+              <p> Transaksi kasir cepat, multi-cabang</p>
             </li>
             <li className="flex items-center gap-2.5">
               <span className="size-1.5 shrink-0 rounded-full bg-white" />
-              Pantau stok, mutasi, dan retur barang
+              <p>
+                Pantau stok, mutasi, dan retur barang
+              </p>
             </li>
             <li className="flex items-center gap-2.5">
               <span className="size-1.5 shrink-0 rounded-full bg-white" />
-              Laporan penjualan &amp; keuangan real-time
+              <p>
+                Laporan penjualan &amp; keuangan real-time
+              </p>
             </li>
           </ul>
         </div>

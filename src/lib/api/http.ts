@@ -1,4 +1,4 @@
-import type { ApiErrorBody, QueryParams } from "@/types/api";
+import type { ApiEnvelope, ListResult, PageMeta, QueryParams } from "@/types/api";
 import { ApiError } from "./errors";
 
 
@@ -38,12 +38,20 @@ async function parseBody(res: Response): Promise<unknown> {
     }
 }
 
-async function request<T>(method: Method, path: string, opts: RequestOptions = {}): Promise<T> {
+function isEnvelope(v: unknown): v is ApiEnvelope<unknown> {
+    return typeof v === "object" && v !== null && "meta" in v;
+}
+
+interface Sent {
+    data: unknown;
+    meta?: PageMeta;
+}
+
+async function send(method: Method, path: string, opts: RequestOptions = {}): Promise<Sent> {
     const { params, body, signal, timeoutMs = DEFAULT_TIMEOUT_MS, headers } = opts;
 
     const timeout = AbortSignal.timeout(timeoutMs);
     const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
-
     const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
     let res: Response;
@@ -54,8 +62,6 @@ async function request<T>(method: Method, path: string, opts: RequestOptions = {
             credentials: "same-origin",
             headers: {
                 Accept: "application/json",
-
-
                 "X-Requested-With": "fetch",
                 ...(body !== undefined && !isFormData ? { "Content-Type": "application/json" } : {}),
                 ...headers,
@@ -63,26 +69,44 @@ async function request<T>(method: Method, path: string, opts: RequestOptions = {
             body: body === undefined ? undefined : isFormData ? (body as FormData) : JSON.stringify(body),
         });
     } catch (err) {
-
         if (signal?.aborted) throw err;
         throw new ApiError(0, "Gagal terhubung ke server.");
     }
 
-    const data = await parseBody(res);
+    const parsed = await parseBody(res);
+    const envelope = isEnvelope(parsed) ? parsed : undefined;
 
-    if (!res.ok) {
-        const errBody = (typeof data === "object" && data !== null ? data : {}) as ApiErrorBody;
-        throw new ApiError(res.status, errBody.message ?? res.statusText ?? "Request gagal", {
-            code: errBody.code,
-            details: errBody.errors,
-        });
+    if (!res.ok || envelope?.meta.status === "error") {
+        const message = envelope?.meta.message ?? res.statusText ?? "Request gagal";
+        const status = envelope?.meta.code ?? res.status;
+        const details =
+            envelope && typeof envelope.data === "object" && envelope.data !== null
+                ? envelope.data
+                : undefined;
+        throw new ApiError(status, message, { details });
     }
 
-    return data as T;
+    return { data: envelope ? envelope.data : parsed, meta: envelope?.meta as PageMeta | undefined };
+}
+
+async function request<T>(method: Method, path: string, opts?: RequestOptions): Promise<T> {
+    return (await send(method, path, opts)).data as T;
+}
+
+async function getList<T>(
+    path: string,
+    opts?: Omit<RequestOptions, "body">,
+): Promise<ListResult<T>> {
+    const { data, meta } = await send("GET", path, opts);
+    return {
+        items: Array.isArray(data) ? (data as T[]) : [],
+        meta: meta ?? { code: 200, status: "success", message: "" },
+    };
 }
 
 export const http = {
     get: <T>(path: string, opts?: Omit<RequestOptions, "body">) => request<T>("GET", path, opts),
+    getList,
     post: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, "body">) =>
         request<T>("POST", path, { ...opts, body }),
     put: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, "body">) =>

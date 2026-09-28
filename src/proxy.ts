@@ -5,6 +5,7 @@ const COOKIE = process.env.SESSION_COOKIE_NAME ?? "pm_token";
 export function proxy(req: NextRequest) {
 
     const { pathname, search } = req.nextUrl;
+    if (pathname.startsWith("/_next")) return NextResponse.next();
     const hasSession = req.cookies.has(COOKIE);
 
     if (pathname === '/login') {
@@ -22,6 +23,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-
     matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 }
