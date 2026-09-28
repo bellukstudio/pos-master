@@ -3,15 +3,31 @@ import { env } from "@/lib/env";
 import { getToken } from "./sessions";
 
 
-const BACKEND_ORIGIN = new URL(env.API_BASE_URL).origin;
+const BACKEND_URL = new URL(env.API_BASE_URL);
+const BACKEND_ORIGIN = BACKEND_URL.origin;
+const BACKEND_BASE_PATH = BACKEND_URL.pathname.replace(/\/+$/, "");
 
 export function buildBackendUrl(path: string, search = ""): URL {
     if (!path.startsWith("/")) path = `/${path}`;
-    if (path.includes("..") || path.includes("//") || path.includes("\\")) {
+
+    // Segmen "." dan ".." dinormalisasi diam-diam oleh `new URL()`,
+    // sehingga bisa mengubah path akhir tanpa terdeteksi cek berbasis string.
+    const segments = path.split("/").slice(1);
+    if (
+        path.includes("..") ||
+        path.includes("//") ||
+        path.includes("\\") ||
+        segments.some((s) => s === "." || s === "..")
+    ) {
         throw new Error("Invalid path");
     }
+
     const url = new URL(`${env.API_BASE_URL}${path}${search}`);
     if (url.origin !== BACKEND_ORIGIN) throw new Error("Invalid target");
+
+    // Pertahanan berlapis: path akhir harus persis base + path yang diminta.
+    if (url.pathname !== `${BACKEND_BASE_PATH}${path}`) throw new Error("Invalid path");
+
     return url;
 }
 

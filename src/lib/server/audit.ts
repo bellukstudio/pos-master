@@ -1,6 +1,7 @@
 import "server-only";
 import { env } from "@/lib/env";
 import { buildBackendUrl } from "./backend";
+import { getClientIp } from "./client-ip";
 import { getJwtClaims } from "./jwt";
 import { BACKEND_PATHS } from "./backend_paths";
 
@@ -71,9 +72,8 @@ export function describeMutation(
 }
 
 export function getRequestContext(headers: Headers) {
-    const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
     return {
-        ip: forwarded || headers.get("x-real-ip") || "unknown",
+        ip: getClientIp(headers),
         userAgent: (headers.get("user-agent") ?? "unknown").slice(0, 255),
     };
 }

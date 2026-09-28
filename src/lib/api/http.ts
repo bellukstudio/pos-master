@@ -77,13 +77,20 @@ async function send(method: Method, path: string, opts: RequestOptions = {}): Pr
     const envelope = isEnvelope(parsed) ? parsed : undefined;
 
     if (!res.ok || envelope?.meta.status === "error") {
-        const message = envelope?.meta.message ?? res.statusText ?? "Request gagal";
+        // Error dari proxy/route Next berbentuk { message, code }, bukan envelope backend.
+        const proxyErr =
+            typeof parsed === "object" && parsed !== null && "message" in parsed
+                ? (parsed as { message?: string; code?: string })
+                : undefined;
+
+        const message =
+            envelope?.meta.message || proxyErr?.message || res.statusText || "Request gagal";
         const status = envelope?.meta.code ?? res.status;
         const details =
             envelope && typeof envelope.data === "object" && envelope.data !== null
                 ? envelope.data
                 : undefined;
-        throw new ApiError(status, message, { details });
+        throw new ApiError(status, message, { code: proxyErr?.code, details });
     }
 
     return { data: envelope ? envelope.data : parsed, meta: envelope?.meta as PageMeta | undefined };

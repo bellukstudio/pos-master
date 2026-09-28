@@ -18,6 +18,17 @@ type Ctx = { params: Promise<{ path: string[] }> };
 
 // ---- Pemeriksaan akses ----
 
+/**
+ * Setiap segmen harus "polos": tidak kosong, bukan "." / "..", tanpa pemisah path
+ * atau karakter kontrol. Segmen "." lolos dari cek lama lalu dinormalisasi `new URL()`
+ * sehingga bisa menghindari aturan berbasis posisi segmen (mis. blokir log audit).
+ */
+function hasSafeSegments(segments: string[]): boolean {
+    return segments.every(
+        (s) => s !== "" && s !== "." && s !== ".." && !/[/\\\u0000-\u001f]/.test(s),
+    );
+}
+
 function isAllowedPath(segments: string[]): boolean {
     return segments.length > 0 && ALLOWED_ROOTS.has(segments[0]);
 }
@@ -26,14 +37,20 @@ function isAllowedPath(segments: string[]): boolean {
  * Log audit dari browser hanya boleh DIBACA atau DIHAPUS.
  * Membuat/mengubah entri (POST/PUT/PATCH) diblokir: itu tugas server (lib/server/audit.ts),
  * supaya pelaku, cabang, IP, dan device tidak bisa dipalsukan.
+ * Dibandingkan dalam huruf kecil karena backend bisa saja case-insensitive.
  */
 const AUDIT_BROWSER_METHODS = new Set(["GET", "HEAD", "OPTIONS", "DELETE"]);
 
 function isForbiddenAuditWrite(segments: string[], method: string): boolean {
-    return segments[0] === "admin" && segments[1] === "audit" && !AUDIT_BROWSER_METHODS.has(method);
+    return (
+        segments[0] === "admin" &&
+        segments[1]?.toLowerCase() === "audit" &&
+        !AUDIT_BROWSER_METHODS.has(method)
+    );
 }
 
 function checkAccess(req: NextRequest, segments: string[]): Response | null {
+    if (!hasSafeSegments(segments)) return jsonError(400, "Path tidak valid.");
     if (!isAllowedPath(segments)) return jsonError(404, "Endpoint tidak ditemukan.");
     if (isForbiddenAuditWrite(segments, req.method)) {
         return jsonError(403, "Log audit tidak dapat dibuat atau diubah dari browser.");
@@ -50,16 +67,43 @@ function toBackendPath(segments: string[]): string {
     return "/" + segments.map(encodeURIComponent).join("/");
 }
 
-async function readBody(
-    req: NextRequest,
-): Promise<{ ok: true; body: ArrayBuffer | undefined } | { ok: false; response: Response }> {
+type BodyResult = { ok: true; body: ArrayBuffer | undefined } | { ok: false; response: Response };
+
+const tooLarge = (): BodyResult => ({ ok: false, response: jsonError(413, "Data terlalu besar.") });
+
+/** Baca body sambil dibatasi: berhenti begitu melewati batas, bukan setelah semuanya dimuat. */
+async function readBody(req: NextRequest): Promise<BodyResult> {
     if (SAFE_METHODS.has(req.method)) return { ok: true, body: undefined };
 
-    const body = await req.arrayBuffer();
-    if (body.byteLength > MAX_BODY_BYTES) {
-        return { ok: false, response: jsonError(413, "Data terlalu besar.") };
+    const declared = Number(req.headers.get("content-length"));
+    if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) return tooLarge();
+
+    if (!req.body) return { ok: true, body: undefined };
+
+    const reader = req.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+
+    for (; ;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (total > MAX_BODY_BYTES) {
+            await reader.cancel().catch(() => undefined);
+            return tooLarge();
+        }
+        chunks.push(value);
     }
-    return { ok: true, body };
+
+    if (total === 0) return { ok: true, body: undefined };
+
+    const merged = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+    }
+    return { ok: true, body: merged.buffer as ArrayBuffer };
 }
 
 async function forwardToBackend(

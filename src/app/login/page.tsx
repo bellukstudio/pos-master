@@ -14,7 +14,7 @@ import { TextField } from "@/components/tailgrids/core/text-field";
 import { BrandLogo } from "@/utils/brand";
 import { Eye, EyeDisabled } from "@tailgrids/icons";
 import { useLogin } from "@/hooks/api/use-auth";
-import { toUserMessage } from "@/lib/api/errors";
+import { isApiError, toUserMessage } from "@/lib/api/errors";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import * as React from "react";
@@ -42,7 +42,11 @@ export default function LoginPage() {
           router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
           router.refresh();
         },
-        onError: (err) => toast.error(toUserMessage(err)),
+        onError: (err) => {
+          // 401/429 dari login membawa pesan spesifik (mis. "Email atau password salah.").
+          const useServerMessage = isApiError(err) && [401, 429].includes(err.status) && err.message;
+          toast.error(useServerMessage ? err.message : toUserMessage(err));
+        },
       },
     );
   }

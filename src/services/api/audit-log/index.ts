@@ -1,12 +1,13 @@
-import { http } from '@/lib/api/http';
+import { createResource } from '@/lib/api/resource';
 import { AuditLog, AuditLogFilter } from './types';
 
 export type * from './types';
 
 const BASE = 'admin/audit/audit-logs';
 
-export const getAuditLogs = (filter: AuditLogFilter, signal?: AbortSignal) => http.getList<AuditLog>(BASE, { params: { ...filter }, signal });
 
-export const getAuditLog = (id: string, signal?: AbortSignal) => http.get<AuditLog>(`${BASE}/${encodeURIComponent(id)}`, { signal });
+const auditLogApi = createResource<AuditLog, AuditLogFilter>("admin/audit/audit-logs");
 
-export const deleteAuditLog = (id: string) => http.delete<void>(`${BASE}/${encodeURIComponent(id)}`);
+export const getAuditLogs = auditLogApi.list;
+export const getAuditLog = auditLogApi.get;
+export const deleteAuditLog = auditLogApi.remove;
