@@ -1,8 +1,8 @@
 import { after, type NextRequest } from "next/server";
 import {
     describeMutation,
+    fetchEntitySnapshot,
     getRequestContext,
-    lookupEntityLabel,
     recordAudit,
 } from "@/lib/server/audit";
 import { backendFetch } from "@/lib/server/backend";
@@ -89,7 +89,7 @@ async function readBody(req: NextRequest): Promise<BodyResult> {
     const chunks: Uint8Array[] = [];
     let total = 0;
 
-    for (;;) {
+    for (; ;) {
         const { done, value } = await reader.read();
         if (done) break;
         total += value.byteLength;
@@ -163,11 +163,11 @@ async function recordMutation(
     body: ArrayBuffer | undefined,
     backendStatus: number,
     token: string,
-    entityLabel: string | undefined,
+    beforeEntity: Record<string, unknown> | undefined,
 ) {
     if (backendStatus < 200 || backendStatus >= 300) return;
 
-    const event = describeMutation(req.method, segments, body, entityLabel);
+    const event = describeMutation(req.method, segments, body, beforeEntity);
     if (!event) return;
 
     const input = { ...event, ...getRequestContext(req.headers), token };
@@ -192,7 +192,9 @@ async function handler(req: NextRequest, { params }: Ctx) {
     const bodyResult = await readBody(req);
     if (!bodyResult.ok) return bodyResult.response;
 
-    const entityLabel = await lookupEntityLabel(req.method, segments);
+    // Diambil untuk PUT/PATCH/DELETE: dipakai untuk deskripsi & diff perubahan.
+    // Ini permintaan tambahan ke backend (GET) sebelum request asli diteruskan.
+    const beforeEntity = await fetchEntitySnapshot(req.method, segments);
 
     const forwardResult = await forwardToBackend(req, toBackendPath(segments), bodyResult.body);
     if (!forwardResult.ok) return forwardResult.response;
@@ -203,7 +205,7 @@ async function handler(req: NextRequest, { params }: Ctx) {
         bodyResult.body,
         forwardResult.response.status,
         token,
-        entityLabel,
+        beforeEntity,
     );
     return toClientResponse(forwardResult.response);
 }

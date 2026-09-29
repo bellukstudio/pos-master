@@ -11,11 +11,6 @@ export interface Branch {
     updated_at: string;
 }
 
-export interface BranchFilter {
-    page?: number;
-    per_page?: number;
-    search?: string;
-}
 
 export interface BranchInput {
     name: string

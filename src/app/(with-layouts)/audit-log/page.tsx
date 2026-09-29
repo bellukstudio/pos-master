@@ -1,23 +1,9 @@
 "use client";
 
-import DataTable, { type DataTableColumn } from "@/components/common/data-table";
+import DataTable from "@/components/common/data-table";
 import PageHeader from "@/components/common/page-header";
-import { Badge } from "@/components/tailgrids/core/badge";
-import { Button } from "@/components/tailgrids/core/button";
-import { Card } from "@/components/tailgrids/core/card";
-import {
-  Dialog,
-  DialogBody,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/tailgrids/core/dialog";
 import { Input } from "@/components/tailgrids/core/input";
 import { Label } from "@/components/tailgrids/core/label";
-import { Backdrop, OverlayWrapper } from "@/components/tailgrids/core/overlay";
-import { Pagination } from "@/components/tailgrids/core/pagination";
-import { Skeleton } from "@/components/tailgrids/core/skeleton";
 import { TextField } from "@/components/tailgrids/core/text-field";
 import { useAuditLogs, useDeleteAuditLog } from "@/hooks/api/use-audit-logs";
 import { useMe } from "@/hooks/api/use-auth";
@@ -26,190 +12,12 @@ import { toUserMessage } from "@/lib/api/errors";
 import type { AuditLog } from "@/services/api/audit-log";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { buildColumns, ErrorCard, TableSkeleton } from "./column";
+import { DeleteAuditDialog } from "./dialog";
+import { PaginationControls } from "@/components/common/pagination";
 
 const PER_PAGE = 10;
 
-// Zona waktu dikunci agar tampilan konsisten di semua perangkat.
-const dateTimeFormat = new Intl.DateTimeFormat("id-ID", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "Asia/Jakarta",
-});
-
-function formatDateTime(iso: string): string {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "-" : dateTimeFormat.format(date);
-}
-
-type BadgeColor = "gray" | "success" | "blue" | "error";
-
-const ACTION_COLORS: Record<string, BadgeColor> = {
-  create: "success",
-  update: "blue",
-  delete: "error",
-};
-
-const baseColumns: DataTableColumn<AuditLog>[] = [
-  {
-    header: "Waktu",
-    cell: (l) => formatDateTime(l.activity_time),
-    // String ISO 8601 urut secara leksikografis sama seperti urut waktunya, jadi aman dipakai langsung.
-    accessorFn: (l) => l.activity_time,
-  },
-  {
-    header: "Pengguna",
-    cell: (l) => (
-      <div className="flex flex-col">
-        <span className="font-medium text-text-primary">{l.user?.name ?? "-"}</span>
-        {l.user?.role && <span className="text-xs text-text-tertiary capitalize">{l.user.role}</span>}
-      </div>
-    ),
-    accessorFn: (l) => l.user?.name,
-  },
-  {
-    header: "Modul",
-    cell: (l) => <span className="capitalize">{l.module}</span>,
-    accessorFn: (l) => l.module,
-  },
-  {
-    header: "Aksi",
-    cell: (l) => (
-      <Badge color={ACTION_COLORS[l.action.toLowerCase()] ?? "gray"} className="px-2.5 capitalize">
-        {l.action}
-      </Badge>
-    ),
-    accessorFn: (l) => l.action,
-  },
-  {
-    header: "Aktivitas",
-    cell: (l) => (
-      <span className="block max-w-md truncate" title={l.description}>
-        {l.description}
-      </span>
-    ),
-  },
-  { header: "Cabang", cell: (l) => l.branch?.name ?? "-" },
-  { header: "IP", cell: (l) => l.ip_address ?? "-" },
-];
-
-function buildColumns(onDelete: ((log: AuditLog) => void) | undefined): DataTableColumn<AuditLog>[] {
-  if (!onDelete) return baseColumns;
-
-  return [
-    ...baseColumns,
-    {
-      header: "Opsi",
-      cell: (l) => (
-        <Button appearance="outline" variant="danger" size="sm" onPress={() => onDelete(l)}>
-          Hapus
-        </Button>
-      ),
-    },
-  ];
-}
-
-function TableSkeleton() {
-  return (
-    <Card className="space-y-3 p-5">
-      {Array.from({ length: 6 }, (_, i) => (
-        <Skeleton key={i} className="h-10 w-full rounded-lg" />
-      ))}
-    </Card>
-  );
-}
-
-function ErrorCard({ error, onRetry }: Readonly<{ error: unknown; onRetry: () => void }>) {
-  return (
-    <Card className="flex flex-col items-start gap-3 p-5">
-      <p className="text-sm text-text-primary">{toUserMessage(error)}</p>
-      <Button appearance="outline" size="sm" onPress={onRetry}>
-        Coba lagi
-      </Button>
-    </Card>
-  );
-}
-
-interface DeleteDialogProps {
-  target: AuditLog | null;
-  isPending: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}
-
-function DeleteAuditDialog({ target, isPending, onCancel, onConfirm }: Readonly<DeleteDialogProps>) {
-  return (
-    <OverlayWrapper
-      isOpen={target !== null}
-      onOpenChange={(open) => {
-        if (!open) onCancel();
-      }}
-    >
-      <Backdrop isDismissable>
-        <Dialog className="max-w-108.75 p-0">
-          <DialogHeader className="gap-1 border-b border-card-border py-4 pr-14 pl-5">
-            <DialogTitle className="text-xl leading-7">Hapus log aktivitas?</DialogTitle>
-            <DialogDescription className="text-text-tertiary">
-              Log ini akan dihapus dari daftar. Penghapusan ini juga dicatat di log aktivitas.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogBody className="px-5 py-4">
-            <p className="text-sm wrap-break-word text-text-primary">{target?.description}</p>
-          </DialogBody>
-
-          <DialogFooter className="px-5 pb-5">
-            <Button appearance="outline" isDisabled={isPending} onPress={onCancel}>
-              Batal
-            </Button>
-            <Button variant="danger" isDisabled={isPending} onPress={onConfirm}>
-              {isPending ? "Menghapus..." : "Hapus"}
-            </Button>
-          </DialogFooter>
-        </Dialog>
-      </Backdrop>
-    </OverlayWrapper>
-  );
-}
-
-interface PaginationControlsProps {
-  page: number;
-  totalPages: number | undefined;
-  hasNext: boolean;
-  onPageChange: (page: number) => void;
-}
-
-function PaginationControls({ page, totalPages, hasNext, onPageChange }: Readonly<PaginationControlsProps>) {
-  // Backend mengirim total_pages: pakai nomor halaman.
-  if (totalPages) {
-    if (totalPages <= 1) return null;
-    return <Pagination currentPage={page} totalPages={totalPages} onPageChange={onPageChange} />;
-  }
-
-  // Fallback tanpa total_pages: cukup Sebelumnya / Berikutnya.
-  if (page === 1 && !hasNext) return null;
-
-  return (
-    <div className="flex items-center justify-between">
-      <Button
-        appearance="outline"
-        size="sm"
-        isDisabled={page === 1}
-        onPress={() => onPageChange(Math.max(1, page - 1))}
-      >
-        Sebelumnya
-      </Button>
-      <span className="text-sm text-text-tertiary">Halaman {page}</span>
-      <Button
-        appearance="outline"
-        size="sm"
-        isDisabled={!hasNext}
-        onPress={() => onPageChange(page + 1)}
-      >
-        Berikutnya
-      </Button>
-    </div>
-  );
-}
 
 export default function AuditLogPage() {
   const [page, setPage] = useState(1);

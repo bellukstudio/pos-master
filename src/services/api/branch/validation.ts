@@ -13,11 +13,6 @@ export const branchInputSchema = z.object({
 
 export type BranchInput = z.infer<typeof branchInputSchema>;
 
-export const branchFilterSchema = z.object({
-    page: z.coerce.number().int().min(1).optional(),
-    per_page: z.coerce.number().int().min(1).max(100).optional(),
-    search: z.string().trim().max(100).optional()
-});
 
 export type BranchFieldErrors = Partial<Record<keyof BranchInput, string>>;
 

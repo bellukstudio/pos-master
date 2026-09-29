@@ -9,6 +9,7 @@ export function useAuditLogs(filter: AuditLogFilter) {
         queryKey: qk.auditLogs.list(filter),
         queryFn: ({ signal }) => getAuditLogs(filter, signal),
         placeholderData: keepPreviousData,
+        refetchOnMount: "always",
     });
 }
 

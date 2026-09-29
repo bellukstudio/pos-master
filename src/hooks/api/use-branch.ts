@@ -1,16 +1,18 @@
 "use client";
 
 import { qk } from "@/lib/api/query-keys";
-import { branchApi, BranchFilter } from "@/services/api/branch";
+import { branchApi, } from "@/services/api/branch";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BranchInput, branchInputSchema } from '../../services/api/branch/validation';
+import { FilterParams } from "@/types/types";
 
 
-export function useBranches(filter: BranchFilter) {
+export function useBranches(filter: FilterParams) {
     return useQuery({
         queryKey: qk.branches.list(filter),
         queryFn: ({ signal }) => branchApi.list(filter, signal),
-        placeholderData: keepPreviousData
+        placeholderData: keepPreviousData,
+        refetchOnMount: "always",
     });
 }
 

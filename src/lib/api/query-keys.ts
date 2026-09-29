@@ -19,6 +19,11 @@ export const qk = {
         list: (filter?: object) => ["branches", "list", filter ?? {}] as const,
         detail: (id: string) => ["branches", "detail", id] as const,
     },
+    categoryProducts: {
+        all: ['category-product'] as const,
+        list: (filter?: object) => ["category-product", "list", filter ?? {}] as const,
+        detail: (id: string) => ["category-product", "detail", id] as const
+    },
     products: {
         all: ["products"] as const,
         list: (filter?: object) => ["products", "list", filter ?? {}] as const,
