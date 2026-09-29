@@ -199,7 +199,7 @@ const fieldErrorStyles = cva(
 export interface FieldErrorProps
   extends AriaFieldErrorProps, VariantProps<typeof fieldErrorStyles> {}
 
-export function FieldError({ className, ...props }: FieldErrorProps) {
+export function FieldError({ className, ...props }: Readonly<FieldErrorProps>) {
   return (
     <AriaFieldError className={cn(fieldErrorStyles(), className)} {...props} />
   );
@@ -228,7 +228,7 @@ export function FieldSeparator({
   className,
   children,
   ...props
-}: FieldSeparatorProps) {
+}: Readonly<FieldSeparatorProps>) {
   const hasContent = Boolean(children);
 
   if (!children) {

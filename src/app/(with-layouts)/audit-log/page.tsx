@@ -50,7 +50,12 @@ const ACTION_COLORS: Record<string, BadgeColor> = {
 };
 
 const baseColumns: DataTableColumn<AuditLog>[] = [
-  { header: "Waktu", cell: (l) => formatDateTime(l.activity_time) },
+  {
+    header: "Waktu",
+    cell: (l) => formatDateTime(l.activity_time),
+    // String ISO 8601 urut secara leksikografis sama seperti urut waktunya, jadi aman dipakai langsung.
+    accessorFn: (l) => l.activity_time,
+  },
   {
     header: "Pengguna",
     cell: (l) => (
@@ -59,8 +64,13 @@ const baseColumns: DataTableColumn<AuditLog>[] = [
         {l.user?.role && <span className="text-xs text-text-tertiary capitalize">{l.user.role}</span>}
       </div>
     ),
+    accessorFn: (l) => l.user?.name,
   },
-  { header: "Modul", cell: (l) => <span className="capitalize">{l.module}</span> },
+  {
+    header: "Modul",
+    cell: (l) => <span className="capitalize">{l.module}</span>,
+    accessorFn: (l) => l.module,
+  },
   {
     header: "Aksi",
     cell: (l) => (
@@ -68,6 +78,7 @@ const baseColumns: DataTableColumn<AuditLog>[] = [
         {l.action}
       </Badge>
     ),
+    accessorFn: (l) => l.action,
   },
   {
     header: "Aktivitas",
