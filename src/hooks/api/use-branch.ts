@@ -33,9 +33,9 @@ export function useSaveBranch() {
             const parsed = branchInputSchema.parse(input);
             return id ? branchApi.update(id, parsed) : branchApi.create(parsed);
         },
-        onSuccess: (_data, { id }) => {
-            qc.invalidateQueries({ queryKey: qk.branches.all });
-            if (id) qc.invalidateQueries({ queryKey: qk.branches.detail(id) });
+        onSuccess: async (_data, { id }) => {
+            await qc.invalidateQueries({ queryKey: qk.branches.all });
+            if (id) await qc.invalidateQueries({ queryKey: qk.branches.detail(id) });
         }
     });
 }

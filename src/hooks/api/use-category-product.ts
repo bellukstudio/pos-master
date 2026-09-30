@@ -30,10 +30,10 @@ export function useSaveCategoryProduct() {
             const parsed = categoryProductInputSchema.parse(input);
             return id ? categoryProductApi.update(id, parsed) : categoryProductApi.create(parsed);
         },
-        onSuccess: (_data, { id }) => {
-            qc.invalidateQueries({ queryKey: qk.categoryProducts.all });
-            if (id) qc.invalidateQueries({ queryKey: qk.categoryProducts.detail(id) });
-        }
+        onSuccess: async (_data, { id }) => {
+            await qc.invalidateQueries({ queryKey: qk.categoryProducts.all });
+            if (id) await qc.invalidateQueries({ queryKey: qk.categoryProducts.detail(id) });
+        },
     });
 }
 

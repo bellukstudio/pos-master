@@ -1,4 +1,4 @@
-import { createResource } from '@/lib/api/resource';
+    import { createResource } from '@/lib/api/resource';
 import { CategoryProductInput } from './validation';
 import { CategoryProduct } from './types';
 import { FilterParams } from '@/types/types';

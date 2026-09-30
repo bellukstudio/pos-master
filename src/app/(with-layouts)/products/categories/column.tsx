@@ -1,9 +1,6 @@
 
 import { DataTableColumn } from "@/components/common/data-table";
 import { Button } from "@/components/tailgrids/core/button";
-import { Card } from "@/components/tailgrids/core/card";
-import { Skeleton } from "@/components/tailgrids/core/skeleton";
-import { toUserMessage } from "@/lib/api/errors";
 import { CategoryProduct } from "@/services/api/categor-product";
 
 
@@ -40,22 +37,3 @@ export function buildColumns(
     ];
 }
 
-
-export function TableSkeleton() {
-    return (
-        <Card>
-            {Array.from({ length: 5 }, (_, i) => (
-                <Skeleton key={i} className="h-10 w-full rounded-lg" />
-            ))}
-        </Card>
-    );
-}
-
-export function ErrorCard({ error, onRetry }: Readonly<{ error: unknown; onRetry: () => void }>) {
-    return (
-        <Card className="flex flex-col items-start gap-3 p-5">
-            <p className="text-sm text-text-primary">{toUserMessage(error)}</p>
-            <Button appearance="outline" size="sm" onPress={onRetry}></Button>
-        </Card>
-    );
-}

@@ -12,9 +12,10 @@ import { toUserMessage } from "@/lib/api/errors";
 import type { AuditLog } from "@/services/api/audit-log";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { buildColumns, ErrorCard, TableSkeleton } from "./column";
+import { buildColumns} from "./column";
 import { DeleteAuditDialog } from "./dialog";
 import { PaginationControls } from "@/components/common/pagination";
+import { ErrorCard, TableSkeleton } from "@/components/common/skeleton";
 
 const PER_PAGE = 10;
 

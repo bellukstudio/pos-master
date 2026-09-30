@@ -14,9 +14,10 @@ import { BranchInput } from "@/services/api/branch";
 import { useState, useMemo, ReactNode } from "react";
 
 import { toast } from "sonner";
-import { buildColumns, ErrorCard, TableSkeleton } from "./column";
+import { buildColumns} from "./column";
 import { BranchFormDialog, DeleteBranchDialog } from "./dialog";
 import { PaginationControls } from "@/components/common/pagination";
+import { ErrorCard, TableSkeleton } from "@/components/common/skeleton";
 
 const PER_PAGE = 10;
 

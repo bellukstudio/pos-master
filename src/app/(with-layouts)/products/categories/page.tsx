@@ -4,7 +4,7 @@ import { ReactNode, useMemo, useState } from "react";
 import { CategoryProduct, CategoryProductInput } from '@/services/api/categor-product';
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useCategoryProducts, useDeleteCategoryProduct, useSaveCategoryProduct } from "@/hooks/api/use-category-product";
-import { buildColumns, ErrorCard, TableSkeleton } from "./column";
+import { buildColumns} from "./column";
 import { toast } from "sonner";
 import { toUserMessage } from "@/lib/api/errors";
 import DataTable from "@/components/common/data-table";
@@ -15,6 +15,7 @@ import { TextField } from "@/components/tailgrids/core/text-field";
 import { Label } from "@/components/tailgrids/core/label";
 import { Input } from "@/components/tailgrids/core/input";
 import { CatgoryProductFormDialog, DeleteCategoryProductDialog } from "./dialog";
+import { ErrorCard, TableSkeleton } from "@/components/common/skeleton";
 
 const PER_PAGE = 10;
 
