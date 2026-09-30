@@ -1,12 +1,12 @@
 import { z } from "zod";
+import { getClientIp } from "@/lib/server/client-ip";
 import { backendFetch } from "@/lib/server/backend";
 import { isTrustedMutation } from "@/lib/server/csrf";
 import { getJwtExpirySeconds } from "@/lib/server/jwt";
 import { createLimiter } from "@/lib/server/rate-limit";
 import { jsonError } from "@/lib/server/responses";
+import { setRefreshToken, setToken } from "@/lib/server/sessions";
 import type { LoginResult } from "@/services/api/auth/types";
-import { setToken } from "@/lib/server/sessions";
-import { getClientIp } from "@/lib/server/client-ip";
 
 const bodySchema = z.object({
     email: z.string().trim().min(1).max(254),
@@ -21,6 +21,7 @@ interface Envelope<T> {
 }
 
 const FALLBACK_MAX_AGE = 60 * 60;
+const REFRESH_FALLBACK_MAX_AGE = 30 * 24 * 60 * 60; // 30 hari, dipakai bila exp tak terbaca
 const CREDENTIAL_ERROR_CODES = new Set([400, 401, 422]);
 
 // Hanya KEGAGALAN kredensial yang dihitung. Batas per-email dibuat lebih longgar dari
@@ -74,6 +75,17 @@ export async function POST(req: Request) {
 
         emailFailures.reset(emailKey);
         await setToken(token, getJwtExpirySeconds(token) ?? FALLBACK_MAX_AGE);
+
+        const refreshToken = body?.data?.refreshToken;
+        if (refreshToken) {
+            await setRefreshToken(refreshToken, getJwtExpirySeconds(refreshToken) ?? REFRESH_FALLBACK_MAX_AGE);
+        } else if (process.env.NODE_ENV !== "production") {
+            // Tanpa ini, sesi akan tetap habis setelah 24 jam meski user aktif (tak ada yang
+            // bisa ditukar saat access token kedaluwarsa) - refreshAccessToken() akan selalu
+            // gagal karena getRefreshToken() tidak pernah punya nilai.
+            console.warn("[login] respons tidak menyertakan refreshToken; refresh otomatis tidak akan bekerja");
+        }
+
         return Response.json({ ok: true, user: body?.data?.user ?? null });
     }
 

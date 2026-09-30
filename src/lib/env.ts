@@ -1,7 +1,7 @@
 import "server-only";
 
 import { z } from "zod";
-import { SESSION_COOKIE_NAME } from "./session-cookie";
+import { REFRESH_COOKIE_NAME, SESSION_COOKIE_NAME } from "./session-cookie";
 
 const schema = z.object({
     API_BASE_URL: z.url().transform((v) => v.replace(/\/+$/, "")),
@@ -10,4 +10,4 @@ const schema = z.object({
     TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
 });
 
-export const env = { ...schema.parse(process.env), SESSION_COOKIE_NAME };
+export const env = { ...schema.parse(process.env), SESSION_COOKIE_NAME, REFRESH_COOKIE_NAME };

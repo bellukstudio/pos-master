@@ -8,6 +8,7 @@ import {
 import { backendFetch } from "@/lib/server/backend";
 import { isTrustedMutation, SAFE_METHODS } from "@/lib/server/csrf";
 import { jsonError } from "@/lib/server/responses";
+import { refreshAccessToken } from "@/lib/server/refresh";
 import { clearToken, getToken } from "@/lib/server/sessions";
 
 /**
@@ -111,11 +112,15 @@ async function readBody(req: NextRequest): Promise<BodyResult> {
     return { ok: true, body: merged.buffer as ArrayBuffer };
 }
 
+type ForwardResult = { ok: true; response: Response } | { ok: false; response: Response };
+
+/** token: override eksplisit dipakai saat mengulang request dengan access token baru pasca-refresh. */
 async function forwardToBackend(
     req: NextRequest,
     path: string,
     body: ArrayBuffer | undefined,
-): Promise<{ ok: true; response: Response } | { ok: false; response: Response }> {
+    token?: string,
+): Promise<ForwardResult> {
     const contentType = req.headers.get("content-type");
 
     try {
@@ -123,6 +128,7 @@ async function forwardToBackend(
             method: req.method,
             search: req.nextUrl.search,
             body,
+            token,
             headers: contentType ? { "Content-Type": contentType } : {},
         });
         return { ok: true, response: res };
@@ -192,19 +198,32 @@ async function handler(req: NextRequest, { params }: Ctx) {
     const bodyResult = await readBody(req);
     if (!bodyResult.ok) return bodyResult.response;
 
-    // Diambil untuk PUT/PATCH/DELETE: dipakai untuk deskripsi & diff perubahan.
-    // Ini permintaan tambahan ke backend (GET) sebelum request asli diteruskan.
     const beforeEntity = await fetchEntitySnapshot(req.method, segments);
+    const backendPath = toBackendPath(segments);
 
-    const forwardResult = await forwardToBackend(req, toBackendPath(segments), bodyResult.body);
+    let forwardResult = await forwardToBackend(req, backendPath, bodyResult.body);
     if (!forwardResult.ok) return forwardResult.response;
+
+    // Access token kedaluwarsa di tengah jalan: coba tukar dengan refresh token SEKALI,
+    // lalu ulangi request yang sama persis. User tidak merasakan apa pun kalau berhasil.
+    // Kalau gagal (refresh token juga sudah tak valid), lanjut seperti biasa -> 401 asli
+    // diteruskan ke toClientResponse, yang akan menghapus cookie & memicu redirect di klien.
+    let effectiveToken = token;
+    if (forwardResult.response.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+            effectiveToken = newToken;
+            forwardResult = await forwardToBackend(req, backendPath, bodyResult.body, newToken);
+            if (!forwardResult.ok) return forwardResult.response;
+        }
+    }
 
     await recordMutation(
         req,
         segments,
         bodyResult.body,
         forwardResult.response.status,
-        token,
+        effectiveToken,
         beforeEntity,
     );
     return toClientResponse(forwardResult.response);
