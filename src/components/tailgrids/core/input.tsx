@@ -18,8 +18,10 @@ const inputStyles = cva(
   },
 );
 
-export interface InputProps extends AriaInputProps, VariantProps<typeof inputStyles> {}
+export interface InputProps extends AriaInputProps, VariantProps<typeof inputStyles> { }
 
-export function Input({ state = "default", className, ...inputProps }: InputProps) {
-  return <AriaInput className={cn(inputStyles({ state }), className)} {...inputProps} />;
+export function Input({ state = "default", className, ...inputProps }: Readonly<InputProps>) {
+  const { defaultValue, ...rest } = inputProps;
+  const props = rest.value !== undefined ? rest : inputProps;
+  return <AriaInput className={cn(inputStyles({ state }), className)} {...props} />;
 }

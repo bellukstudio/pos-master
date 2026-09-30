@@ -23,7 +23,7 @@ const textAreaStyles = cva(
 
 export interface TextAreaProps extends AriaTextAreaProps, VariantProps<typeof textAreaStyles> {}
 
-export function TextArea({ className, rows = 4, state = "default", ...props }: TextAreaProps) {
+export function TextArea({ className, rows = 4, state = "default", ...props }: Readonly<TextAreaProps>) {
   return (
     <AriaTextAria rows={rows} className={cn(textAreaStyles({ state }), className)} {...props} />
   );

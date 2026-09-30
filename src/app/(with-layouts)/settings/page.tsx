@@ -20,12 +20,11 @@ export default function SettingsPage() {
             <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
               <TextField className="w-full flex-col gap-1.5">
                 <Label>Nama Toko</Label>
-                <Input defaultValue="Pos Master Store" className="w-full px-3 py-2.5 text-sm" />
+                <Input className="w-full px-3 py-2.5 text-sm" />
               </TextField>
               <TextField className="w-full flex-col gap-1.5">
                 <Label>Alamat</Label>
                 <TextArea
-                  defaultValue="Jl. Kemang Raya No. 12, Jakarta Selatan"
                   className="w-full px-3 py-2.5 text-sm"
                   rows={3}
                 />
@@ -33,11 +32,11 @@ export default function SettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <TextField className="w-full flex-col gap-1.5">
                   <Label>Telepon</Label>
-                  <Input defaultValue="021-7180012" className="w-full px-3 py-2.5 text-sm" />
+                  <Input className="w-full px-3 py-2.5 text-sm" />
                 </TextField>
                 <TextField className="w-full flex-col gap-1.5">
                   <Label>Email</Label>
-                  <Input defaultValue="info@posmaster.com" className="w-full px-3 py-2.5 text-sm" />
+                  <Input className="w-full px-3 py-2.5 text-sm" />
                 </TextField>
               </div>
               <Button variant="primary" appearance="fill" size="md" type="submit" className="mt-1 w-fit">
@@ -55,7 +54,7 @@ export default function SettingsPage() {
                 <TextField className="w-full flex-col gap-1.5">
                   <Label>Mata Uang</Label>
                   <select
-                    defaultValue="IDR"
+
                     className="w-full rounded-lg border border-card-border bg-input-background px-3 py-2.5 text-sm text-title-50 outline-none focus:border-input-primary-focus-border focus:ring-4 focus:ring-input-primary-focus-border/20"
                   >
                     <option value="IDR">Rupiah (IDR)</option>
@@ -64,13 +63,12 @@ export default function SettingsPage() {
                 </TextField>
                 <TextField className="w-full flex-col gap-1.5">
                   <Label>Pajak (PPN)</Label>
-                  <Input type="number" defaultValue={11} className="w-full px-3 py-2.5 text-sm" />
+                  <Input type="number" className="w-full px-3 py-2.5 text-sm" />
                 </TextField>
               </div>
               <TextField className="w-full flex-col gap-1.5">
                 <Label>Catatan Kaki Struk</Label>
                 <TextArea
-                  defaultValue="Terima kasih telah berbelanja di Pos Master Store!"
                   className="w-full px-3 py-2.5 text-sm"
                   rows={3}
                 />

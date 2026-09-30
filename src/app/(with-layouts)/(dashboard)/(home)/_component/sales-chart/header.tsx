@@ -84,7 +84,6 @@ export default function HeaderSection({
         <Select
           onChange={(value) => setTimeRange(value as Granularity)}
           value={timeRange}
-          defaultValue="monthly"
           aria-label="Select time range"
         >
           <SelectTrigger size="sm">
