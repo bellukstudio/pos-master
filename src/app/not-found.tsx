@@ -44,7 +44,7 @@ export default function Error() {
   );
 }
 
-function ErrorFaceIcon(props: SVGProps<SVGSVGElement>) {
+function ErrorFaceIcon(props: Readonly<SVGProps<SVGSVGElement>>) {
   return (
     <svg
       width={500}
